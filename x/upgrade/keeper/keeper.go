@@ -30,16 +30,18 @@ type Keeper struct {
 	storeKey           sdk.StoreKey
 	cdc                codec.BinaryMarshaler
 	upgradeHandlers    map[string]types.UpgradeHandler
+	moduleManager      types.ModuleManager
 }
 
 // NewKeeper constructs an upgrade Keeper
-func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryMarshaler, homePath string) Keeper {
+func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryMarshaler, homePath string, modManager types.ModuleManager) Keeper {
 	return Keeper{
 		homePath:           homePath,
 		skipUpgradeHeights: skipUpgradeHeights,
 		storeKey:           storeKey,
 		cdc:                cdc,
 		upgradeHandlers:    map[string]types.UpgradeHandler{},
+		moduleManager:      modManager,
 	}
 }
 
@@ -219,7 +221,7 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) {
 		panic("ApplyUpgrade should never be called without first checking HasHandler")
 	}
 
-	handler(ctx, plan)
+	handler(ctx, plan, k.moduleManager.GetConsensusVersion())
 
 	// Must clear IBC state after upgrade is applied as it is stored separately from the upgrade plan.
 	// This will prevent resubmission of upgrade msg after upgrade is already completed.
