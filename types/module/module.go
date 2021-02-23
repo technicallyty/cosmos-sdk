@@ -345,6 +345,11 @@ type MigrationHandler func(store sdk.Context) error
 // version from which we should perform the migration for each module.
 type MigrationMap map[string]uint64
 
+// ModuleManager adds function to `Get` MigrationMap
+type ModuleManager interface {
+	GetConsensusVersions() MigrationMap
+}
+
 // RunMigrations performs in-place store migrations for all modules.
 func (m Manager) RunMigrations(ctx sdk.Context, cfg Configurator, migrateFromVersions MigrationMap) error {
 	c, ok := cfg.(configurator)
