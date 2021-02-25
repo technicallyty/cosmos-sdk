@@ -14,6 +14,14 @@ import (
 	ibctmtypes "github.com/cosmos/cosmos-sdk/x/ibc/light-clients/07-tendermint/types"
 )
 
+// InitChainer will commit the consensus versions to state
+func InitChainer(k keeper.Keeper, ctx sdk.Context) {
+	migmap := k.GetMigrationMap()
+	for modName, ver := range migmap {
+		k.SetConsensusVersion(ctx, ver, []byte(modName))
+	}
+}
+
 // BeginBlock will check if there is a scheduled plan and if it is ready to be executed.
 // If the current height is in the provided set of heights to skip, it will skip and clear the upgrade plan.
 // If it is ready, it will execute it if the handler is installed, and panic/abort otherwise.

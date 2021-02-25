@@ -31,11 +31,11 @@ type Keeper struct {
 	storeKey           sdk.StoreKey
 	cdc                codec.BinaryMarshaler
 	upgradeHandlers    map[string]types.UpgradeHandler
-	moduleManager      module.ModuleManager
+	moduleManager      module.Manager
 }
 
 // NewKeeper constructs an upgrade Keeper
-func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryMarshaler, homePath string, modManager module.ModuleManager) Keeper {
+func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryMarshaler, homePath string, modManager module.Manager) Keeper {
 	return Keeper{
 		homePath:           homePath,
 		skipUpgradeHeights: skipUpgradeHeights,
@@ -273,6 +273,29 @@ func (k Keeper) getHomeDir() string {
 	return k.homePath
 }
 
+// SetConsensusVersion sets the given module's consensus version to the given version
+func (k Keeper) SetConsensusVersion(ctx sdk.Context, version uint64, moduleName []byte) {
+	store := k.getConsensusVersionPrefixStore(ctx, moduleName)
+	versionBytes := make([]byte, 8)
+	binary.LittleEndian.PutUint64(versionBytes, version)
+	store.Set(types.UpgradeMigrationMapStateKey(moduleName), versionBytes)
+}
+
+// GetConsensusVersion get's a given module's consensus version
+func (k Keeper) GetConsensusVersion(ctx sdk.Context, moduleName []byte) uint64 {
+	store := k.getConsensusVersionPrefixStore(ctx, moduleName)
+	v := store.Get(types.UpgradeMigrationMapStateKey(moduleName))
+	version := uint64(binary.LittleEndian.Uint64(v))
+
+	return version
+}
+
+// getConsensusVersionStore gets the store of the given module name
+func (k Keeper) getConsensusVersionPrefixStore(ctx sdk.Context, moduleName []byte) prefix.Store {
+	store := ctx.KVStore(k.storeKey)
+	return prefix.NewStore(store, types.UpgradeMigrationMapStateKey(moduleName))
+}
+
 // ReadUpgradeInfoFromDisk returns the name and height of the upgrade which is
 // written to disk by the old binary when panicking. An error is returned if
 // the upgrade path directory cannot be created or if the file exists and
@@ -300,4 +323,9 @@ func (k Keeper) ReadUpgradeInfoFromDisk() (store.UpgradeInfo, error) {
 	}
 
 	return upgradeInfo, nil
+}
+
+// GetMigrationMap returns the underlying migration map from module
+func (k Keeper) GetMigrationMap() module.MigrationMap {
+	return k.moduleManager.GetConsensusVersions()
 }

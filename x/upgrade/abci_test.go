@@ -156,7 +156,7 @@ func VerifyDoIBCUpgrade(t *testing.T) {
 	})
 
 	t.Log("Verify that the upgrade can be successfully applied with a handler")
-	s.keeper.SetUpgradeHandler("test", func(ctx sdk.Context, plan types.Plan) {})
+	s.keeper.SetUpgradeHandler("test", func(ctx sdk.Context, plan types.Plan, migrationMap module.MigrationMap) error { return nil })
 	require.NotPanics(t, func() {
 		s.module.BeginBlock(newCtx, req)
 	})
@@ -183,7 +183,7 @@ func VerifyDoUpgrade(t *testing.T) {
 	})
 
 	t.Log("Verify that the upgrade can be successfully applied with a handler")
-	s.keeper.SetUpgradeHandler("test", func(ctx sdk.Context, plan types.Plan) {})
+	s.keeper.SetUpgradeHandler("test", func(ctx sdk.Context, plan types.Plan, migrationMap module.MigrationMap) error { return nil })
 	require.NotPanics(t, func() {
 		s.module.BeginBlock(newCtx, req)
 	})
@@ -199,7 +199,7 @@ func VerifyDoUpgradeWithCtx(t *testing.T, newCtx sdk.Context, proposalName strin
 	})
 
 	t.Log("Verify that the upgrade can be successfully applied with a handler")
-	s.keeper.SetUpgradeHandler(proposalName, func(ctx sdk.Context, plan types.Plan) {})
+	s.keeper.SetUpgradeHandler(proposalName, func(ctx sdk.Context, plan types.Plan, migrationMap module.MigrationMap) error { return nil })
 	require.NotPanics(t, func() {
 		s.module.BeginBlock(newCtx, req)
 	})
@@ -211,7 +211,7 @@ func TestHaltIfTooNew(t *testing.T) {
 	s := setupTest(10, map[int64]bool{})
 	t.Log("Verify that we don't panic with registered plan not in database at all")
 	var called int
-	s.keeper.SetUpgradeHandler("future", func(ctx sdk.Context, plan types.Plan) { called++ })
+	s.keeper.SetUpgradeHandler("future", func(ctx sdk.Context, plan types.Plan, migrationMap module.MigrationMap) error { called++; return nil })
 
 	newCtx := s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 1).WithBlockTime(time.Now())
 	req := abci.RequestBeginBlock{Header: newCtx.BlockHeader()}
@@ -465,6 +465,13 @@ func TestUpgradeWithoutSkip(t *testing.T) {
 
 	VerifyDoUpgrade(t)
 	VerifyDone(t, s.ctx, "test")
+}
+
+// Checks that the consensus versions were committed to state
+func TestConsensusVersionSetupOnGenesis(t *testing.T) {
+	s := setupTest(10, map[int64]bool{})
+	migmap := s.keeper.GetMigrationMap()
+	require.Greater(t, len(migmap), 0)
 }
 
 func TestIBCUpgradeWithoutSkip(t *testing.T) {

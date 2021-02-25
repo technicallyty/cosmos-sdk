@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	commitmenttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/23-commitment/types"
 	ibcexported "github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
@@ -31,7 +32,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(false)
 	homeDir := filepath.Join(s.T().TempDir(), "x_upgrade_keeper_test")
 	app.UpgradeKeeper = keeper.NewKeeper( // recreate keeper in order to use a custom home path
-		make(map[int64]bool), app.GetKey(types.StoreKey), app.AppCodec(), homeDir,
+		make(map[int64]bool), app.GetKey(types.StoreKey), app.AppCodec(), homeDir, module.Manager{},
 	)
 	s.T().Log("home dir:", homeDir)
 	s.homeDir = homeDir
@@ -40,6 +41,25 @@ func (s *KeeperTestSuite) SetupTest() {
 		Time:   time.Now(),
 		Height: 10,
 	})
+}
+
+func (s *KeeperTestSuite) TestConsensusVersionStore() {
+	testModuleName := "testModule"
+	testModuleVersion := uint64(1)
+	testModule := []byte(testModuleName)
+	s.app.UpgradeKeeper.SetConsensusVersion(s.ctx, testModuleVersion, testModule)
+	s.app.UpgradeKeeper.SetConsensusVersion(s.ctx, testModuleVersion+1, testModule)
+
+	testModuleName2 := "testModule2"
+	testModuleVersion2 := uint64(8)
+	testModule2 := []byte(testModuleName2)
+	s.app.UpgradeKeeper.SetConsensusVersion(s.ctx, testModuleVersion2, testModule2)
+
+	version := s.app.UpgradeKeeper.GetConsensusVersion(s.ctx, testModule)
+	version2 := s.app.UpgradeKeeper.GetConsensusVersion(s.ctx, testModule2)
+
+	s.Require().NotEqual(version, testModuleVersion)
+	s.Require().Equal(testModuleVersion2, version2)
 }
 
 func (s *KeeperTestSuite) TestReadUpgradeInfoFromDisk() {
@@ -197,7 +217,7 @@ func (s *KeeperTestSuite) TestScheduleUpgrade() {
 				Height: 123450000,
 			},
 			setup: func() {
-				s.app.UpgradeKeeper.SetUpgradeHandler("all-good", func(_ sdk.Context, _ types.Plan) {})
+				s.app.UpgradeKeeper.SetUpgradeHandler("all-good", func(_ sdk.Context, _ types.Plan, _ module.MigrationMap) error { return nil })
 				s.app.UpgradeKeeper.ApplyUpgrade(s.ctx, types.Plan{
 					Name:   "all-good",
 					Info:   "some text here",
