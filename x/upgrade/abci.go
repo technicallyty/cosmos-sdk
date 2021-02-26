@@ -15,11 +15,8 @@ import (
 )
 
 // InitChainer will commit the consensus versions to state
-func InitChainer(k keeper.Keeper, ctx sdk.Context) {
-	migmap := k.GetMigrationMap()
-	for modName, ver := range migmap {
-		k.SetConsensusVersion(ctx, ver, []byte(modName))
-	}
+func InitChainer(k keeper.Keeper, ctx sdk.Context) { // broken
+	k.SetConsensusVersions(ctx)
 }
 
 // BeginBlock will check if there is a scheduled plan and if it is ready to be executed.

@@ -100,9 +100,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
-// InitGenesis is ignored, no sense in serializing future upgrades
+// InitGenesis saves the intial consensus versions to state
 func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, _ json.RawMessage) []abci.ValidatorUpdate {
-	InitChainer(am.keeper, ctx)
+	InitChainer(am.keeper, ctx) // this doesnt do anything
 	return []abci.ValidatorUpdate{}
 }
 
