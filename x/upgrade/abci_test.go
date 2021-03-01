@@ -21,8 +21,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
-	ibctmtypes "github.com/cosmos/cosmos-sdk/x/ibc/light-clients/07-tendermint/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	"github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	"github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -120,6 +118,7 @@ func TestCanOverwriteScheduleUpgrade(t *testing.T) {
 	VerifyDoUpgrade(t)
 }
 
+<<<<<<< HEAD
 func VerifyDoIBCLastBlock(t *testing.T) {
 	t.Log("Verify that chain committed to consensus state on the last height it will commit")
 	nextValsHash := []byte("nextValsHash")
@@ -173,6 +172,8 @@ func VerifyDoIBCUpgrade(t *testing.T) {
 	require.Nil(t, consState, "IBC consensus state is not-nil after upgrade")
 }
 
+=======
+>>>>>>> 010eeef457ac608d1e91176b0a2d6c58c23ae2e1
 func VerifyDoUpgrade(t *testing.T) {
 	t.Log("Verify that a panic happens at the upgrade time/height")
 	newCtx := s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 1).WithBlockTime(time.Now())
@@ -280,27 +281,20 @@ func TestNoSpuriousUpgrades(t *testing.T) {
 }
 
 func TestPlanStringer(t *testing.T) {
-	clientState := &ibctmtypes.ClientState{ChainId: "gaiachain"}
-	cs, err := clienttypes.PackClientState(clientState)
-	require.NoError(t, err)
-
 	ti, err := time.Parse(time.RFC3339, "2020-01-01T00:00:00Z")
 	require.Nil(t, err)
 	require.Equal(t, `Upgrade Plan
   Name: test
   Time: 2020-01-01T00:00:00Z
-  Info: .
-  Upgraded IBC Client: no upgraded client provided`, types.Plan{Name: "test", Time: ti}.String())
+  Info: .`, types.Plan{Name: "test", Time: ti}.String())
 	require.Equal(t, `Upgrade Plan
   Name: test
   Height: 100
-  Info: .
-  Upgraded IBC Client: no upgraded client provided`, types.Plan{Name: "test", Height: 100}.String())
+  Info: .`, types.Plan{Name: "test", Height: 100}.String())
 	require.Equal(t, fmt.Sprintf(`Upgrade Plan
   Name: test
   Height: 100
-  Info: .
-  Upgraded IBC Client: %s`, clientState), types.Plan{Name: "test", Height: 100, UpgradedClientState: cs}.String())
+  Info: .`), types.Plan{Name: "test", Height: 100}.String())
 }
 
 func VerifyNotDone(t *testing.T, newCtx sdk.Context, name string) {
@@ -467,6 +461,7 @@ func TestUpgradeWithoutSkip(t *testing.T) {
 	VerifyDone(t, s.ctx, "test")
 }
 
+<<<<<<< HEAD
 // Checks that the consensus versions were committed to state TODO: TYLER _ THIS IS BROKEN
 func TestInitGenesis(t *testing.T) {
 	setupTest(10, map[int64]bool{})
@@ -493,6 +488,8 @@ func TestIBCUpgradeWithoutSkip(t *testing.T) {
 	VerifyDone(t, s.ctx, "test")
 }
 
+=======
+>>>>>>> 010eeef457ac608d1e91176b0a2d6c58c23ae2e1
 func TestDumpUpgradeInfoToFile(t *testing.T) {
 	s := setupTest(10, map[int64]bool{})
 
