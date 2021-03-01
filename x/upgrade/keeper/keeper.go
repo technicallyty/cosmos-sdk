@@ -31,12 +31,12 @@ type Keeper struct {
 	storeKey           sdk.StoreKey
 	cdc                codec.BinaryMarshaler
 	upgradeHandlers    map[string]types.UpgradeHandler
-	moduleManager      module.VersionManager
+	ModuleManager      *module.Manager
 }
 
 // NewKeeper constructs an upgrade Keeper
-func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryMarshaler, homePath string) Keeper {
-	return Keeper{
+func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryMarshaler, homePath string) *Keeper {
+	return &Keeper{
 		homePath:           homePath,
 		skipUpgradeHeights: skipUpgradeHeights,
 		storeKey:           storeKey,
@@ -52,9 +52,12 @@ func (k Keeper) SetUpgradeHandler(name string, upgradeHandler types.UpgradeHandl
 	k.upgradeHandlers[name] = upgradeHandler
 }
 
-// SetModuleManager -
-func (k Keeper) SetModuleManager(modManager module.VersionManager) {
-	k.moduleManager = modManager
+// SetModuleManager sets the module manager field on the keeper.
+// this is needed as to avoid circular dependancies. app.mm needs
+// all modules, and this module needs app.mm .
+// be sure to call this function AFTER app.mm has been initialized.
+func (k *Keeper) SetModuleManager(modManager *module.Manager) {
+	k.ModuleManager = modManager
 }
 
 // ScheduleUpgrade schedules an upgrade based on the specified plan.
@@ -331,12 +334,12 @@ func (k Keeper) ReadUpgradeInfoFromDisk() (store.UpgradeInfo, error) {
 
 // GetInitialMigrationMap gets the initial consensus versions on app startup
 func (k *Keeper) GetInitialMigrationMap(ctx sdk.Context) module.MigrationMap {
-	return k.moduleManager.GetConsensusVersions()
+	return k.ModuleManager.GetConsensusVersions()
 }
 
 // SetConsensusVersions saves the consensus versions retrieved from module.Manager
 func (k Keeper) SetConsensusVersions(ctx sdk.Context) {
-	modules := k.moduleManager.GetConsensusVersions()
+	modules := k.ModuleManager.GetConsensusVersions()
 	for mod, ver := range modules {
 		k.setConsensusVersion(ctx, ver, []byte(mod))
 	}
@@ -344,11 +347,16 @@ func (k Keeper) SetConsensusVersions(ctx sdk.Context) {
 
 // GetConsensusVersions gets a MigrationMap from state
 func (k Keeper) GetConsensusVersions(ctx sdk.Context) module.MigrationMap {
-	modules := k.moduleManager.GetConsensusVersions()
+	store := ctx.KVStore(k.storeKey)
+	it := sdk.KVStorePrefixIterator(store, []byte{types.MigrationMapByte})
+
 	migmap := make(map[string]uint64)
-	for name := range modules {
-		ver := k.getConsensusVersion(ctx, []byte(name))
-		migmap[name] = ver
+
+	defer it.Close()
+	for ; it.Valid(); it.Next() {
+		moduleName := string(it.Key())
+		moduleVersion := binary.LittleEndian.Uint64(it.Value())
+		migmap[moduleName] = moduleVersion
 	}
 
 	return migmap

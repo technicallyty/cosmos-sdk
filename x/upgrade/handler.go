@@ -11,14 +11,14 @@ import (
 // NewSoftwareUpgradeProposalHandler creates a governance handler to manage new proposal types.
 // It enables SoftwareUpgradeProposal to propose an Upgrade, and CancelSoftwareUpgradeProposal
 // to abort a previously voted upgrade.
-func NewSoftwareUpgradeProposalHandler(k keeper.Keeper) govtypes.Handler {
+func NewSoftwareUpgradeProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
 		case *types.SoftwareUpgradeProposal:
-			return handleSoftwareUpgradeProposal(ctx, k, c)
+			return handleSoftwareUpgradeProposal(ctx, *k, c)
 
 		case *types.CancelSoftwareUpgradeProposal:
-			return handleCancelSoftwareUpgradeProposal(ctx, k, c)
+			return handleCancelSoftwareUpgradeProposal(ctx, *k, c)
 
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized software upgrade proposal content type: %T", c)

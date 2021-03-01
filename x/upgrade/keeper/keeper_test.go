@@ -41,8 +41,9 @@ func (s *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(false)
 	homeDir := filepath.Join(s.T().TempDir(), "x_upgrade_keeper_test")
 	app.UpgradeKeeper = keeper.NewKeeper( // recreate keeper in order to use a custom home path
-		make(map[int64]bool), app.GetKey(types.StoreKey), app.AppCodec(), homeDir, &FakeManager{},
+		make(map[int64]bool), app.GetKey(types.StoreKey), app.AppCodec(), homeDir,
 	)
+	app.UpgradeKeeper.SetModuleManager(module.NewManager())
 	s.T().Log("home dir:", homeDir)
 	s.homeDir = homeDir
 	s.app = app

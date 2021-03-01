@@ -24,5 +24,4 @@ func TestItSavesConsensusVersionToState(t *testing.T) {
 	migmap := app.UpgradeKeeper.GetConsensusVersions(ctx)
 
 	require.NotEmpty(t, migmap)
-
 }

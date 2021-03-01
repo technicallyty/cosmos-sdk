@@ -15,7 +15,7 @@ import (
 )
 
 // InitChainer will commit the consensus versions to state
-func InitChainer(k keeper.Keeper, ctx sdk.Context) { // broken
+func InitChainer(k *keeper.Keeper, ctx sdk.Context) {
 	k.SetConsensusVersions(ctx)
 }
 

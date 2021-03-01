@@ -3,7 +3,6 @@ package upgrade
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -70,11 +69,11 @@ func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 // AppModule implements the sdk.AppModule interface
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper keeper.Keeper) AppModule {
+func NewAppModule(keeper *keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
@@ -92,7 +91,7 @@ func (AppModule) QuerierRoute() string { return types.QuerierKey }
 
 // LegacyQuerierHandler registers a query handler to respond to the module-specific queries
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
+	return keeper.NewQuerier(*am.keeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers a GRPC query service to respond to the
@@ -103,8 +102,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // InitGenesis saves the intial consensus versions to state
 func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, _ json.RawMessage) []abci.ValidatorUpdate {
-	//InitChainer(am.keeper, ctx) // this doesnt do anything
-	fmt.Println(am)
+	InitChainer(am.keeper, ctx)
 	return []abci.ValidatorUpdate{}
 }
 
@@ -130,7 +128,7 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 //
 // CONTRACT: this is registered in BeginBlocker *before* all other modules' BeginBlock functions
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	BeginBlocker(am.keeper, ctx, req)
+	BeginBlocker(*am.keeper, ctx, req)
 }
 
 // EndBlock does nothing

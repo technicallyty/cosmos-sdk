@@ -236,7 +236,6 @@ type Manager struct {
 	OrderExportGenesis []string
 	OrderBeginBlockers []string
 	OrderEndBlockers   []string
-	VersionManager
 }
 
 // NewManager creates a new Manager object
@@ -345,11 +344,6 @@ type MigrationHandler func(store sdk.Context) error
 // MigrationMap is a map of moduleName -> version, where version denotes the
 // version from which we should perform the migration for each module.
 type MigrationMap map[string]uint64
-
-// VersionManager implements a function to get consensus versions for storage
-type VersionManager interface {
-	GetConsensusVersions() MigrationMap
-}
 
 // RunMigrations performs in-place store migrations for all modules.
 func (m Manager) RunMigrations(ctx sdk.Context, cfg Configurator, migrateFromVersions MigrationMap) error {
