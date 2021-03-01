@@ -31,18 +31,17 @@ type Keeper struct {
 	storeKey           sdk.StoreKey
 	cdc                codec.BinaryMarshaler
 	upgradeHandlers    map[string]types.UpgradeHandler
-	moduleManager      module.Manager
+	moduleManager      module.VersionManager
 }
 
 // NewKeeper constructs an upgrade Keeper
-func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryMarshaler, homePath string, modManager module.Manager) Keeper {
+func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryMarshaler, homePath string) Keeper {
 	return Keeper{
 		homePath:           homePath,
 		skipUpgradeHeights: skipUpgradeHeights,
 		storeKey:           storeKey,
 		cdc:                cdc,
 		upgradeHandlers:    map[string]types.UpgradeHandler{},
-		moduleManager:      modManager,
 	}
 }
 
@@ -51,6 +50,11 @@ func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc cod
 // must be set even if it is a no-op function.
 func (k Keeper) SetUpgradeHandler(name string, upgradeHandler types.UpgradeHandler) {
 	k.upgradeHandlers[name] = upgradeHandler
+}
+
+// SetModuleManager -
+func (k Keeper) SetModuleManager(modManager module.VersionManager) {
+	k.moduleManager = modManager
 }
 
 // ScheduleUpgrade schedules an upgrade based on the specified plan.
@@ -340,7 +344,7 @@ func (k Keeper) SetConsensusVersions(ctx sdk.Context) {
 
 // GetConsensusVersions gets a MigrationMap from state
 func (k Keeper) GetConsensusVersions(ctx sdk.Context) module.MigrationMap {
-	modules := k.moduleManager.Modules
+	modules := k.moduleManager.GetConsensusVersions()
 	migmap := make(map[string]uint64)
 	for name := range modules {
 		ver := k.getConsensusVersion(ctx, []byte(name))

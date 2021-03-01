@@ -3,6 +3,7 @@ package upgrade
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -102,7 +103,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // InitGenesis saves the intial consensus versions to state
 func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, _ json.RawMessage) []abci.ValidatorUpdate {
-	InitChainer(am.keeper, ctx) // this doesnt do anything
+	//InitChainer(am.keeper, ctx) // this doesnt do anything
+	fmt.Println(am)
 	return []abci.ValidatorUpdate{}
 }
 
