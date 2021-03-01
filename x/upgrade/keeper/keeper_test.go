@@ -28,15 +28,6 @@ type KeeperTestSuite struct {
 	ctx     sdk.Context
 }
 
-type FakeManager struct{}
-
-func (f *FakeManager) GetConsensusVersions() module.MigrationMap {
-	fakeMap := make(map[string]uint64)
-	fakeMap["upgrade"] = 2
-	fakeMap["test"] = 3
-	return fakeMap
-}
-
 func (s *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(false)
 	homeDir := filepath.Join(s.T().TempDir(), "x_upgrade_keeper_test")
@@ -51,25 +42,6 @@ func (s *KeeperTestSuite) SetupTest() {
 		Time:   time.Now(),
 		Height: 10,
 	})
-}
-
-func (s *KeeperTestSuite) TestConsensusVersionStore() {
-	// testModuleName := "testModule"
-	// testModuleVersion := uint64(1)
-	// testModule := []byte(testModuleName)
-	// s.app.UpgradeKeeper.SetConsensusVersion(s.ctx, testModuleVersion, testModule)
-	// s.app.UpgradeKeeper.SetConsensusVersion(s.ctx, testModuleVersion, testModule)
-
-	// testModuleName2 := "testModule2"
-	// testModuleVersion2 := uint64(8)
-	// testModule2 := []byte(testModuleName2)
-	// s.app.UpgradeKeeper.SetConsensusVersion(s.ctx, testModuleVersion2, testModule2)
-
-	// version := s.app.UpgradeKeeper.GetConsensusVersion(s.ctx, testModule)
-	// version2 := s.app.UpgradeKeeper.GetConsensusVersion(s.ctx, testModule2)
-
-	// s.Require().Equal(version, testModuleVersion)
-	// s.Require().Equal(testModuleVersion2, version2)
 }
 
 func (s *KeeperTestSuite) TestReadUpgradeInfoFromDisk() {
