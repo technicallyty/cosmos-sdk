@@ -1,9 +1,20 @@
 package keeper_test
 
 import (
+	"github.com/ethereum/go-ethereum/common"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 )
+
+func (suite *KeeperTestSuite) TestContraError() {
+	require := suite.Require()
+	moduleAddr := common.BytesToAddress(authtypes.NewModuleAddress("someModule").Bytes())
+	seq, err := suite.app.AccountKeeper.GetSequence(suite.sdkCtx, moduleAddr.Bytes())
+	require.Error(err)
+	require.Equal(uint64(0), seq)
+}
 
 func (suite *KeeperTestSuite) TestGrantAllowance() {
 	oneYear := suite.sdkCtx.BlockTime().AddDate(1, 0, 0)
