@@ -4,15 +4,34 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 )
 
+// this test showcases how the GetSequence call fails for a freshly generated address.
 func (suite *KeeperTestSuite) TestContraError() {
 	require := suite.Require()
 	moduleAddr := common.BytesToAddress(authtypes.NewModuleAddress("someModule").Bytes())
 	_, err := suite.app.AccountKeeper.GetSequence(suite.sdkCtx, moduleAddr.Bytes())
 	require.NoError(err)
+}
+
+// This test showcases how to properly register an account and get a sequence
+func (suite *KeeperTestSuite) TestRegisterModuleAccount() {
+	require := suite.Require()
+	moduleAcc := authtypes.NewEmptyModuleAccount("someModule")
+
+	// set the module account so it's registered in state space.
+	suite.app.AccountKeeper.SetModuleAccount(suite.sdkCtx, moduleAcc)
+	seq, err := suite.app.AccountKeeper.GetSequence(suite.sdkCtx, moduleAcc.GetAddress())
+	require.NoError(err)
+	require.Equal(uint64(0), seq)
+
+	// we can convert the module account to an ethereum style 0x address
+	ethModuleAccount := common.BytesToAddress(moduleAcc.GetAddress().Bytes())
+	var originalModuleAccount sdk.AccAddress = ethModuleAccount.Bytes()
+	require.True(originalModuleAccount.Equals(moduleAcc.GetAddress()))
 }
 
 func (suite *KeeperTestSuite) TestGrantAllowance() {
