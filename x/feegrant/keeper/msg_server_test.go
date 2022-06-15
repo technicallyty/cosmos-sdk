@@ -11,9 +11,8 @@ import (
 func (suite *KeeperTestSuite) TestContraError() {
 	require := suite.Require()
 	moduleAddr := common.BytesToAddress(authtypes.NewModuleAddress("someModule").Bytes())
-	seq, err := suite.app.AccountKeeper.GetSequence(suite.sdkCtx, moduleAddr.Bytes())
-	require.Error(err)
-	require.Equal(uint64(0), seq)
+	_, err := suite.app.AccountKeeper.GetSequence(suite.sdkCtx, moduleAddr.Bytes())
+	require.NoError(err)
 }
 
 func (suite *KeeperTestSuite) TestGrantAllowance() {
