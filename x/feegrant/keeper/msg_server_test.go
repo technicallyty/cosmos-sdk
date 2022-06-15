@@ -1,9 +1,44 @@
 package keeper_test
 
 import (
+	"encoding/binary"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/testutil"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 )
+
+func (suite *KeeperTestSuite) TestStoreNonce() {
+	// store setup, you can ignore this mostly...
+	storeKey := sdk.NewKVStoreKey("foo")
+	ctx := testutil.DefaultContext(storeKey, sdk.NewTransientStoreKey("transient_test"))
+
+	// this is how you would get the store in your keeper: sdkCtx.KVStore(k.storeKey)
+	someAddr := authtypes.NewEmptyModuleAccount("foobar")
+	account := someAddr.GetAddress()
+	store := ctx.KVStore(storeKey)
+
+	var nonce uint64
+	bz := store.Get(account.Bytes())
+	if bz == nil {
+		// there's no nonce, so we should default it.
+		nonce = 0
+		b := make([]byte, 8)
+		binary.LittleEndian.PutUint64(b, nonce+1)
+		store.Set(account.Bytes(), b)
+
+		// okay now lets try to get it again.
+		// it should be 1 because we set it to 0+1 = 1.
+		bz = store.Get(account.Bytes())
+		nonce = binary.LittleEndian.Uint64(bz)
+		suite.Require().Equal(uint64(1), nonce)
+
+	} else { // this will never run in the test, but showcases how you can get the nonce from the bytes.
+		nonce = binary.LittleEndian.Uint64(bz)
+	}
+}
 
 func (suite *KeeperTestSuite) TestGrantAllowance() {
 	oneYear := suite.sdkCtx.BlockTime().AddDate(1, 0, 0)
