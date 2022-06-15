@@ -2,8 +2,36 @@ package keeper_test
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	"github.com/cosmos/cosmos-sdk/x/group"
 )
+
+// this test showcases how the sequence is never updated. Calling a keeper method with a certain address
+// does not automatically update its sequence. This is impossible and needs to be tracked in state separately.
+func (suite *KeeperTestSuite) TestRegisterModuleAccount() {
+	require := suite.Require()
+	moduleAcc := authtypes.NewEmptyModuleAccount("someModule")
+	suite.app.AccountKeeper.SetModuleAccount(suite.sdkCtx, moduleAcc)
+	seq, err := suite.app.AccountKeeper.GetSequence(suite.sdkCtx, moduleAcc.GetAddress())
+	require.NoError(err)
+	require.Equal(uint64(0), seq)
+
+	// call another module's method with this address.
+	_, err = suite.app.GroupKeeper.CreateGroup(suite.ctx, &group.MsgCreateGroup{
+		Admin: moduleAcc.GetAddress().String(),
+		Members: []group.MemberRequest{
+			{Address: moduleAcc.GetAddress().String(), Weight: ".3", Metadata: "hey"},
+		},
+		Metadata: "hey",
+	})
+	require.NoError(err)
+
+	// get the sequence again
+	seq, err = suite.app.AccountKeeper.GetSequence(suite.sdkCtx, moduleAcc.GetAddress())
+	require.NoError(err)
+	require.Equal(uint64(0), seq)
+}
 
 func (suite *KeeperTestSuite) TestGrantAllowance() {
 	oneYear := suite.sdkCtx.BlockTime().AddDate(1, 0, 0)
