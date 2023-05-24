@@ -266,7 +266,7 @@ replace (
 	// Downgraded to avoid bugs in following commits which caused simulations to fail.
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// use cometbft
-	github.com/tendermint/tendermint => github.com/rollkit/cometbft v0.0.0-20230524013001-2968c8b8b121
+	github.com/tendermint/tendermint => github.com/rollkit/cometbft v0.0.0-20230524013049-75272ebaee38
 )
 
 retract (

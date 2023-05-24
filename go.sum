@@ -1268,8 +1268,8 @@ github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFR
 github.com/rogpeppe/go-internal v1.6.1/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
 github.com/rogpeppe/go-internal v1.8.0/go.mod h1:WmiCO8CzOY8rg0OYDC4/i/2WRWAB6poM+XZ2dLUbcbE=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
-github.com/rollkit/cometbft v0.0.0-20230524013001-2968c8b8b121 h1:kMzxCUzXcdk318N/G2E7U0GXrq6yqczjFRs2RZvIUeE=
-github.com/rollkit/cometbft v0.0.0-20230524013001-2968c8b8b121/go.mod h1:Xc6G7GTlHAjeH3l5H8WibF/YrcCR6iDgAGrXVWkMwiU=
+github.com/rollkit/cometbft v0.0.0-20230524013049-75272ebaee38 h1:NXreFMbkn0zql+t9OjZhybitFygfx6qOI73D1Eb+JxE=
+github.com/rollkit/cometbft v0.0.0-20230524013049-75272ebaee38/go.mod h1:odqD7bL9gx8+eL8jtQIzA/sUOLJF+eZ2aFfztIcHJkw=
 github.com/rollkit/rollkit v0.8.0 h1:DVZnU4f9E0UL/a4tRReoSifnXdyxezUPcqdD2BSqiCE=
 github.com/rollkit/rollkit v0.8.0/go.mod h1:/8ZW46bvTbj08G4mfzZjPGIZ38A9nKSgnmZXUzJQ1No=
 github.com/rs/cors v1.7.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
