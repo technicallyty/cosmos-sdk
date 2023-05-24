@@ -1,6 +1,7 @@
 package baseapp
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/snapshots"
 	"github.com/cosmos/cosmos-sdk/store"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -352,11 +352,11 @@ func (app *BaseApp) Init() error {
 	app.setCheckState(tmproto.Header{})
 	app.Seal()
 
-	rms, ok := app.cms.(*rootmulti.Store)
-	if !ok {
-		return fmt.Errorf("invalid commit multi-store; expected %T, got: %T", &rootmulti.Store{}, app.cms)
+	if app.cms == nil {
+		return errors.New("commit multi-store must not be nil")
 	}
-	return rms.GetPruning().Validate()
+
+	return app.cms.GetPruning().Validate()
 }
 
 func (app *BaseApp) setMinGasPrices(gasPrices sdk.DecCoins) {
@@ -729,7 +729,7 @@ func (app *BaseApp) runTx(mode runTxMode, txBytes []byte) (gInfo sdk.GasInfo, re
 
 			newCtx, err := app.postHandler(postCtx, tx, mode == runTxModeSimulate)
 			if err != nil {
-				return gInfo, nil, nil, priority, err
+				return gInfo, nil, anteEvents, priority, err
 			}
 
 			result.Events = append(result.Events, newCtx.EventManager().ABCIEvents()...)
@@ -858,4 +858,9 @@ func (app *BaseApp) GenerateFraudProof(proof abci.RequestGenerateFraudProof) abc
 func (app *BaseApp) VerifyFraudProof(proof abci.RequestVerifyFraudProof) abci.ResponseVerifyFraudProof {
 	// TODO implement me
 	panic("implement me")
+}
+
+// Close is called in start cmd to gracefully cleanup resources.
+func (app *BaseApp) Close() error {
+	return nil
 }
